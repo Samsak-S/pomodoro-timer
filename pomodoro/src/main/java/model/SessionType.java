@@ -1,6 +1,7 @@
 package model;
 
 public enum SessionType {
-    WORK,
-    BREAK    
+    FOCUS,
+    BREAK,
+    LONG_BREAK,    
 }
