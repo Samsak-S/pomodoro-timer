@@ -22,7 +22,7 @@ public class PomodoroController {
 
     @PostMapping("/start")
     public PomodoroSession startPomodoro(@RequestBody SessionType type) {
-        return currentService.startSession(type;
+        return currentService.startSession(type);
     }
 
     @PostMapping("/stop")
