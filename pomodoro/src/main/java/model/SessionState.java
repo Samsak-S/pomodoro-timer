@@ -1,8 +1,9 @@
 package model;
 
 public enum SessionState {
-    NEW,
     ACTIVE,
+    PAUSED,
+    RESUMED,
     COMPLETED,
     CANCELLED,
 }
