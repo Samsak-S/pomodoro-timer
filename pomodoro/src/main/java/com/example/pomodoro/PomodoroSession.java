@@ -63,7 +63,7 @@ public class PomodoroSession {
         totalPauseDuration = totalPauseDuration.plus(interval);
         pauseTime = null;
 
-        state = SessionState.RESUMED;
+        state = SessionState.ACTIVE;
     }
 
     public void cancel() {
@@ -79,15 +79,9 @@ public class PomodoroSession {
         state = SessionState.CANCELLED;
     }
 
-    public void stop() {
+    public void complete() {
         if(state != SessionState.ACTIVE)
             throw new IllegalStateException("There is no active session");
-
-        if(state == SessionState.PAUSED && pauseTime != null) {
-            Duration interval = Duration.between(pauseTime, LocalDateTime.now());
-            totalPauseDuration = totalPauseDuration.plus(interval);
-            pauseTime = null;
-        }
 
         endTime = LocalDateTime.now();
         state = SessionState.COMPLETED;

@@ -12,7 +12,6 @@ public class PomodoroService {
     private PomodoroSession session;
 
     public PomodoroSession startSession(SessionType type) {
-
         if(session != null) {
             throw new IllegalStateException("This session is already in progress!");
         }
@@ -22,16 +21,14 @@ public class PomodoroService {
     }
 
     public PomodoroSession pauseSession() {
-
         if(session == null) 
             throw new IllegalStateException("There is no session to pause");
         session.pause();
 
         return session;
-
     }
-     public PomodoroSession resumeSession() {
 
+     public PomodoroSession resumeSession() {
         if(session == null) 
             throw new IllegalStateException("There is no session to pause");
         session.resume();
@@ -39,11 +36,10 @@ public class PomodoroService {
         return session;
     } 
 
-    public PomodoroSession stopSession() {
-
+    public PomodoroSession completeSession() {
         if(session == null)
             throw new IllegalStateException("There is no active session to stop");
-        session.stop();
+        session.complete();
         PomodoroSession finished = session;
         session = null;
 
@@ -51,7 +47,6 @@ public class PomodoroService {
     }
 
     public PomodoroSession cancelSession() {
-
         if(session == null)
             throw new IllegalStateException("There are no active session to cancel");
         session.cancel();
