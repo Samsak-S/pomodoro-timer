@@ -54,3 +54,5 @@
   * Start with simple error management which throws errors when there is an illegal state.
 
 10. Map the api's with the respective exposed PomodoroService in PomodoroController.
+
+11. Add custom error HTTP messages and exceptions to handle different types of Illegal possible states.

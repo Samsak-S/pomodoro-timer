@@ -1,7 +1,7 @@
 package exception;
 
 public class InvalidSessionActionException extends RuntimeException {
-    InvalidSessionActionException(String message) {
+    public InvalidSessionActionException(String message) {
         super(message);
     }    
 }

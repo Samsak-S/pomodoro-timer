@@ -1,6 +1,5 @@
 package exception;
 
-import org.apache.catalina.connector.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -24,5 +23,15 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(SessionConflictException.class)
     public ResponseEntity<Object> handleConflict(SessionConflictException ex) {
         return buildResponse(ex.getMessage(), HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(InvalidSessionActionException.class)
+    public ResponseEntity<Object> handleInvalidAction(InvalidSessionActionException ex) {
+        return buildResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+    
+    @ExceptionHandler(SessionNotFoundException.class)
+    public ResponseEntity<Object> handleNotFound(SessionNotFoundException ex) {
+        return buildResponse(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 }
