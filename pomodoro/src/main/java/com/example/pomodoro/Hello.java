@@ -10,6 +10,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class Hello {
     @GetMapping
     public String newDay() {
-        return "<h1>This is a new day</h1>";
+        return "This is a new day";
     }
 }

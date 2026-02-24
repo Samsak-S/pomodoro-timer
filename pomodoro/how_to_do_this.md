@@ -56,3 +56,5 @@
 10. Map the api's with the respective exposed PomodoroService in PomodoroController.
 
 11. Add custom error HTTP messages and exceptions to handle different types of Illegal possible states.
+
+12. Next add persistence so that PomodoroService doesn't hold any state and all the data is fetched from DB.

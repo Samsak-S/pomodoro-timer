@@ -1,23 +1,37 @@
 package com.example.pomodoro;
 
+import jakarta.persistence.*;
 import model.SessionType;
 import model.SessionState;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 
+@Entity
+@Table(name = "sessions")
 public class PomodoroSession {
-    private final LocalDateTime startTime;
-    private final SessionType type;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private long id;
+
+    private LocalDateTime startTime;
     private LocalDateTime endTime;
+    
+    @Enumerated(EnumType.STRING)
+    private SessionType type;
+    @Enumerated(EnumType.STRING)
     private SessionState state;
+
     private LocalDateTime pauseTime;
-    private Duration totalPauseDuration = Duration.ZERO;
+    @Column(name = "total_pause_duration")
+    private Duration totalPauseDuration;
+
+    protected PomodoroSession() {}
 
     public PomodoroSession(LocalDateTime startTime, SessionType type) {
         this.startTime = startTime;
         this.type = type;
         this.state = SessionState.ACTIVE;
+        this.totalPauseDuration = Duration.ZERO;
     }
 
     public LocalDateTime getStartTime() {
@@ -27,7 +41,6 @@ public class PomodoroSession {
     public SessionType getType() {
         return type;
     }
-
 
     public void setEndTime(LocalDateTime endTime) {
         this.endTime = endTime;
@@ -46,6 +59,9 @@ public class PomodoroSession {
         return state;
     }
 
+    public long getId() {
+        return id;
+    }
 
     public void pause() {
         if(state != SessionState.ACTIVE)
@@ -56,8 +72,8 @@ public class PomodoroSession {
     }
 
     public void resume() {
-        if(state != SessionState.PAUSED)
-            throw new IllegalStateException("There is no paused session");
+        if(state != SessionState.PAUSED || pauseTime != null)
+            throw new IllegalStateException("Paused session was not correctly initialized");
 
         Duration interval = Duration.between(pauseTime, LocalDateTime.now());
         totalPauseDuration = totalPauseDuration.plus(interval);

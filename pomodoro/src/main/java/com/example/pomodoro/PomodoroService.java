@@ -1,7 +1,10 @@
 package com.example.pomodoro;
 
+import model.SessionState;
 import model.SessionType;
 import exception.*;
+import java.util.List;
+import java.util.Optional;
 
 import java.time.LocalDateTime;
 
@@ -10,79 +13,73 @@ import org.springframework.stereotype.Service;
 @Service
 public class PomodoroService {
 
-    private PomodoroSession session;
+    private final PomodoroRepository repository;
 
+    public PomodoroService(PomodoroRepository repository) {
+        this.repository = repository;
+    }
+
+    public Optional<PomodoroSession> getActiveOrPausedSession() {
+        return repository.findFirstByStateIn(List.of(SessionState.ACTIVE, SessionState.PAUSED));
+    }
     public PomodoroSession startSession(SessionType type) {
-        if(session != null) {
+        if(getActiveOrPausedSession().isPresent()) {
             throw new InvalidSessionActionException("This session is already in progress!");
         }
-        session = new PomodoroSession(LocalDateTime.now() , type);
+        PomodoroSession thisSession = new PomodoroSession(LocalDateTime.now() , type);
 
-        return session;
+        return repository.save(thisSession);
     }
 
     public PomodoroSession pauseSession() {
-        if(session == null) 
-            throw new InvalidSessionActionException("There is no session to pause");
+        PomodoroSession thisSession = getActiveOrPausedSession().orElseThrow(() -> new InvalidSessionActionException("There is no session to pause"));
 
         try {
-            session.pause();
+            thisSession.pause();
         } 
         catch(IllegalStateException ex) {
             throw new InvalidSessionActionException(ex.getMessage());
         }
 
-        return session;
+        return repository.save(thisSession);
     }
 
      public PomodoroSession resumeSession() {
-        if(session == null) 
-            throw new InvalidSessionActionException("There is no session to resume");
+        PomodoroSession thisSession = getActiveOrPausedSession().orElseThrow(() -> new InvalidSessionActionException("There is no session to resume"));
         try {
-            session.resume();
+            thisSession.resume();
         }
         catch(IllegalStateException ex) {
             throw new InvalidSessionActionException(ex.getMessage());
         }
 
-        return session;
+        return repository.save(thisSession);
     } 
 
     public PomodoroSession completeSession() {
-        if(session == null)
-            throw new InvalidSessionActionException("There is no session to complete");
+        PomodoroSession thisSession = getActiveOrPausedSession().orElseThrow(() -> new InvalidSessionActionException("There is no session to complete"));
         try {
-            session.complete();
+            thisSession.complete();
         }
         catch(IllegalStateException ex) {
             throw new InvalidSessionActionException(ex.getMessage());
         }
-        PomodoroSession finished = session;
-        session = null;
-
-        return finished;
+        return repository.save(thisSession);
     }
 
     public PomodoroSession cancelSession() {
-        if(session == null)
-            throw new InvalidSessionActionException("There are no active session to cancel");
+        PomodoroSession thisSession = getActiveOrPausedSession().orElseThrow(() -> new InvalidSessionActionException("There is no session to complete"));
         try {
-            session.cancel();
+            thisSession.cancel();
         }
         catch(IllegalStateException ex) {
             throw new InvalidSessionActionException(ex.getMessage());
         }
-        PomodoroSession cancelled = session;
-        session = null;
-
-        return cancelled;
+        return repository.save(thisSession);
     }
 
-    public PomodoroSession currentSession() {
-        if(session == null) {
-            throw new SessionConflictException("No active session found.");
-        }
-        return session;
+    public PomodoroSession getCurrentSession() {
+        return getActiveOrPausedSession().orElseThrow(() -> new InvalidSessionActionException("There is no session to get"));
     }
 
 }

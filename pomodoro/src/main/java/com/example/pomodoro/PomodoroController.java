@@ -44,7 +44,7 @@ public class PomodoroController {
     }
 
     @GetMapping("/current")
-    public PomodoroSession currentPomodoro() {
-        return currentService.currentSession();
+    public PomodoroSession getCurrentPomodoro() {
+        return currentService.getCurrentSession();
     }
 }
