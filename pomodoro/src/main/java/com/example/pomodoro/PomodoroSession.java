@@ -103,6 +103,10 @@ public class PomodoroSession {
         state = SessionState.COMPLETED;
     }
 
+    public Duration getTotalPauseDuration() {
+        return totalPauseDuration;
+    }
+
     @Override
     public String toString() {
         return "PomodoroSession{" + "startTime=" +  startTime + ", endTime=" + endTime + 
