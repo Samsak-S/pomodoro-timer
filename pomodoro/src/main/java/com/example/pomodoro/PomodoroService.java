@@ -22,11 +22,11 @@ public class PomodoroService {
     public Optional<PomodoroSession> getActiveOrPausedSession() {
         return repository.findFirstByStateIn(List.of(SessionState.ACTIVE, SessionState.PAUSED));
     }
-    public PomodoroSession startSession(SessionType type) {
+    public PomodoroSession startSession(SessionType type, int sessionTime) {
         if(getActiveOrPausedSession().isPresent()) {
-            throw new InvalidSessionActionException("This session is already in progress!");
+            throw new SessionConflictException("This session is already in progress!");
         }
-        PomodoroSession thisSession = new PomodoroSession(LocalDateTime.now() , type);
+        PomodoroSession thisSession = new PomodoroSession(LocalDateTime.now() , type, sessionTime);
 
         return repository.save(thisSession);
     }
@@ -79,7 +79,7 @@ public class PomodoroService {
     }
 
     public PomodoroSession getCurrentSession() {
-        return getActiveOrPausedSession().orElseThrow(() -> new InvalidSessionActionException("There is no session to get"));
+        return getActiveOrPausedSession().orElseThrow(() -> new SessionNotFoundException("There is no session to get"));
     }
 
 }

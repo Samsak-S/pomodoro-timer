@@ -12,6 +12,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import exception.InvalidSessionActionException;
 import exception.SessionConflictException;
 import model.SessionType;
 
@@ -29,7 +30,7 @@ public class PomodoroServiceTest {
         when(repository.findFirstByStateIn(any())).thenReturn(Optional.empty());
         when(repository.save(any())).thenAnswer(i -> i.getArguments()[0]);
 
-        PomodoroSession result = new PomodoroSession(null, SessionType.FOCUS);
+        PomodoroSession result = service.startSession(SessionType.BREAK, 25);
 
         assertNotNull(result);
         verify(repository, times(1)).save(any());
@@ -37,11 +38,11 @@ public class PomodoroServiceTest {
 
     @Test
     public void startSessionFails() {
-        PomodoroSession session = new PomodoroSession(null, SessionType.FOCUS);
+        PomodoroSession session = new PomodoroSession(null, SessionType.FOCUS, 25);
         when(repository.findFirstByStateIn(any())).thenReturn(Optional.of(session));
         
         assertThrows(SessionConflictException.class, () -> {
-            service.startSession(SessionType.FOCUS);
+            service.startSession(SessionType.FOCUS, 25);
         });
     }
     

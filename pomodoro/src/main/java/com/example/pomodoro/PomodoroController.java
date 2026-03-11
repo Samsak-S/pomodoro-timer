@@ -1,7 +1,5 @@
 package com.example.pomodoro;
 
-import model.SessionType;
-
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PostMapping;
 
@@ -19,8 +17,8 @@ public class PomodoroController {
     }
 
     @PostMapping("/start")
-    public PomodoroSession startPomodoro(@RequestBody SessionType type) {
-        return currentService.startSession(type);
+    public PomodoroSession startPomodoro(@RequestBody StartSessionRequest request) {
+        return currentService.startSession(request.getType(), request.getSessionTime());
     }
 
     @PostMapping("/complete")
