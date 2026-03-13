@@ -1,4 +1,4 @@
-package model;
+package com.example.pomodoro.model;
 
 public enum SessionType {
     FOCUS,

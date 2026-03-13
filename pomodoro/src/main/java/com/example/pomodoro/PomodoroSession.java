@@ -1,11 +1,12 @@
 package com.example.pomodoro;
 
 import jakarta.persistence.*;
-import model.SessionType;
-import model.SessionState;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+
+import com.example.pomodoro.model.SessionState;
+import com.example.pomodoro.model.SessionType;
 
 @Entity
 @Table(name = "sessions")
@@ -24,17 +25,17 @@ public class PomodoroSession {
 
     private LocalDateTime pauseTime;
     @Column(name = "total_pause_duration")
-    private Duration totalPauseDuration;
+    private int totalPauseDuration;
     private int sessionTime;
 
     protected PomodoroSession() {}
 
-    public PomodoroSession(LocalDateTime startTime, SessionType type, int sessionTIme) {
+    public PomodoroSession(LocalDateTime startTime, SessionType type, int sessionTime) {
         this.startTime = startTime;
         this.type = type;
-        this.sessionTime = sessionTIme;
+        this.sessionTime = sessionTime;
         this.state = SessionState.ACTIVE;
-        this.totalPauseDuration = Duration.ZERO;
+        this.totalPauseDuration = 0;
     }
 
     public int getSessionTime() {
@@ -62,7 +63,7 @@ public class PomodoroSession {
         this.state = state;
     }
 
-    public SessionState getSessionStatus() {
+    public SessionState getState() {
         return state;
     }
 
@@ -70,11 +71,19 @@ public class PomodoroSession {
         return id;
     }
 
+    public LocalDateTime getPauseTime() {
+        return pauseTime;
+    }
+
+    public int getTotalPauseDuration() {
+        return totalPauseDuration;
+    }
+
     public void pause() {
         if(state != SessionState.ACTIVE)
             throw new IllegalStateException("There is no active session");
 
-        state = SessionState.PAUSED;
+        setState(SessionState.PAUSED);
         pauseTime = LocalDateTime.now();
     }
 
@@ -83,10 +92,10 @@ public class PomodoroSession {
             throw new IllegalStateException("Paused session was not correctly initialized");
 
         Duration interval = Duration.between(pauseTime, LocalDateTime.now());
-        totalPauseDuration = totalPauseDuration.plus(interval);
+        totalPauseDuration = totalPauseDuration + (int) interval.toSeconds();
         pauseTime = null;
 
-        state = SessionState.ACTIVE;
+        setState(SessionState.ACTIVE);
     }
 
     public void cancel() {
@@ -95,27 +104,24 @@ public class PomodoroSession {
 
         if(state == SessionState.PAUSED && pauseTime != null) {
             Duration interval = Duration.between(pauseTime, LocalDateTime.now());
-            totalPauseDuration = totalPauseDuration.plus(interval);
+            totalPauseDuration = totalPauseDuration + (int) interval.toSeconds();
             pauseTime = null;
         }
         endTime = LocalDateTime.now();
-        state = SessionState.CANCELLED;
+        setState(SessionState.CANCELLED);
     }
 
     public void complete() {
         if(state != SessionState.ACTIVE)
             throw new IllegalStateException("There is no active session");
 
-        if((int)Duration.between(startTime, LocalDateTime.now()).minus(totalPauseDuration).toSeconds() < sessionTime)
+        if((int)Duration.between(startTime, LocalDateTime.now()).toSeconds() - totalPauseDuration < sessionTime)
             throw new IllegalStateException("The session is yet to end");
 
         endTime = LocalDateTime.now();
-        state = SessionState.COMPLETED;
+        setState(SessionState.COMPLETED);
     }
 
-    public Duration getTotalPauseDuration() {
-        return totalPauseDuration;
-    }
 
     @Override
     public String toString() {

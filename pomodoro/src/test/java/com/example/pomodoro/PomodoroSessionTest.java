@@ -1,7 +1,8 @@
 package com.example.pomodoro;
 
-import model.*;
 import org.junit.jupiter.api.Test;
+
+import com.example.pomodoro.model.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -14,7 +15,7 @@ public class PomodoroSessionTest {
     @Test
     void shouldStartAsActive() {
         PomodoroSession session = new PomodoroSession(LocalDateTime.now(), SessionType.FOCUS, 25);
-        assertEquals(session.getSessionStatus(), SessionState.ACTIVE);
+        assertEquals(session.getState(), SessionState.ACTIVE);
     }
 
     @Test
@@ -33,8 +34,8 @@ public class PomodoroSessionTest {
         Thread.sleep(100); // Simulate a short pause
         session.resume();
         
-        assertTrue(session.getTotalPauseDuration().toMillis() >= 100, "Paused session was not correctly initialized");
-        assertEquals(SessionState.ACTIVE, session.getSessionStatus());
+        assertTrue(session.getTotalPauseDuration() >= 100, "Paused session was not correctly initialized");
+        assertEquals(SessionState.ACTIVE, session.getState());
     }    
 
 

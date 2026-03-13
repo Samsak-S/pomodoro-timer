@@ -1,7 +1,5 @@
 package com.example.pomodoro;
 
-import model.SessionState;
-import model.SessionType;
 import exception.*;
 import java.util.List;
 import java.util.Optional;
@@ -9,6 +7,9 @@ import java.util.Optional;
 import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
+
+import com.example.pomodoro.model.SessionState;
+import com.example.pomodoro.model.SessionType;
 
 @Service
 public class PomodoroService {

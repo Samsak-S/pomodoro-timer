@@ -1,5 +1,5 @@
 package com.example.pomodoro;
-import model.SessionType;
+import com.example.pomodoro.model.SessionType;
 
 public class StartSessionRequest {
 
