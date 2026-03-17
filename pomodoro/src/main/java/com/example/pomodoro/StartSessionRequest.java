@@ -5,8 +5,17 @@ public class StartSessionRequest {
 
     private SessionType type;
     private int sessionTime;
+    private int streak;
 
     public StartSessionRequest() {
+    }
+
+    public void setStreak(int streak) {
+        this.streak = streak;
+    }
+    
+    public int getStreak() {
+        return streak;
     }
 
     public void setType(SessionType type) {

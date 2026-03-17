@@ -27,15 +27,21 @@ public class PomodoroSession {
     @Column(name = "total_pause_duration")
     private int totalPauseDuration;
     private int sessionTime;
+    private int streak;
 
     protected PomodoroSession() {}
 
-    public PomodoroSession(LocalDateTime startTime, SessionType type, int sessionTime) {
+    public PomodoroSession(LocalDateTime startTime, SessionType type, int sessionTime, int streak) {
         this.startTime = startTime;
         this.type = type;
         this.sessionTime = sessionTime;
         this.state = SessionState.ACTIVE;
         this.totalPauseDuration = 0;
+        this.streak = streak;
+    }
+
+    public int getStreak() {
+        return streak;
     }
 
     public int getSessionTime() {

@@ -14,13 +14,13 @@ public class PomodoroSessionTest {
 
     @Test
     void shouldStartAsActive() {
-        PomodoroSession session = new PomodoroSession(LocalDateTime.now(), SessionType.FOCUS, 25);
+        PomodoroSession session = new PomodoroSession(LocalDateTime.now(), SessionType.FOCUS, 25, 1);
         assertEquals(session.getState(), SessionState.ACTIVE);
     }
 
     @Test
     void shouldThrowExceptionWhenPausingInactiveSession() {
-        PomodoroSession session = new PomodoroSession(LocalDateTime.now(), SessionType.FOCUS, 25);
+        PomodoroSession session = new PomodoroSession(LocalDateTime.now(), SessionType.FOCUS, 25, 1);
         session.complete(); // Now it's COMPLETED
         
         assertThrows(IllegalStateException.class, session::pause);
@@ -28,7 +28,7 @@ public class PomodoroSessionTest {
 
     @Test
     void shouldCalculatePauseDurationCorrectly() throws InterruptedException {
-        PomodoroSession session = new PomodoroSession(LocalDateTime.now(), SessionType.FOCUS, 25);
+        PomodoroSession session = new PomodoroSession(LocalDateTime.now(), SessionType.FOCUS, 25, 1);
         
         session.pause();
         Thread.sleep(100); // Simulate a short pause

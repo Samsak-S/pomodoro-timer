@@ -23,11 +23,11 @@ public class PomodoroService {
     public Optional<PomodoroSession> getActiveOrPausedSession() {
         return repository.findFirstByStateIn(List.of(SessionState.ACTIVE, SessionState.PAUSED));
     }
-    public PomodoroSession startSession(SessionType type, int sessionTime) {
+    public PomodoroSession startSession(SessionType type, int sessionTime, int streak) {
         if(getActiveOrPausedSession().isPresent()) {
             throw new SessionConflictException("This session is already in progress!");
         }
-        PomodoroSession thisSession = new PomodoroSession(LocalDateTime.now() , type, sessionTime);
+        PomodoroSession thisSession = new PomodoroSession(LocalDateTime.now() , type, sessionTime, streak);
 
         return repository.save(thisSession);
     }

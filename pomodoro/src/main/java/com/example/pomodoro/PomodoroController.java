@@ -18,7 +18,7 @@ public class PomodoroController {
 
     @PostMapping("/start")
     public PomodoroSession startPomodoro(@RequestBody StartSessionRequest request) {
-        return currentService.startSession(request.getType(), request.getSessionTime());
+        return currentService.startSession(request.getType(), request.getSessionTime(), request.getStreak());
     }
 
     @PostMapping("/complete")
