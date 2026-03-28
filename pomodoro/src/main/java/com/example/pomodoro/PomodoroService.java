@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Optional;
 
 import java.time.LocalDateTime;
-
 import org.springframework.stereotype.Service;
 
 import com.example.pomodoro.model.SessionState;
@@ -23,6 +22,11 @@ public class PomodoroService {
     public Optional<PomodoroSession> getActiveOrPausedSession() {
         return repository.findFirstByStateIn(List.of(SessionState.ACTIVE, SessionState.PAUSED));
     }
+
+    public Optional<PomodoroSession> getActiveOrPausedOrCompletedSession() {
+        return repository.findFirstByStateInOrderByIdDesc(List.of(SessionState.ACTIVE, SessionState.PAUSED, SessionState.COMPLETED));
+    }
+
     public PomodoroSession startSession(SessionType type, int sessionTime, int streak) {
         if(getActiveOrPausedSession().isPresent()) {
             throw new SessionConflictException("This session is already in progress!");
@@ -80,7 +84,6 @@ public class PomodoroService {
     }
 
     public PomodoroSession getCurrentSession() {
-        return getActiveOrPausedSession().orElseThrow(() -> new SessionNotFoundException("There is no session to get"));
+        return getActiveOrPausedOrCompletedSession().orElseThrow(() -> new SessionNotFoundException("There is no session to get"));
     }
-
 }
