@@ -9,5 +9,4 @@ public class PomodoroApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(PomodoroApplication.class, args);
 	}
-
 }

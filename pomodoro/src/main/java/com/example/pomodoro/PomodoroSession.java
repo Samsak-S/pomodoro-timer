@@ -15,6 +15,10 @@ public class PomodoroSession {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+    
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     
@@ -31,13 +35,18 @@ public class PomodoroSession {
 
     protected PomodoroSession() {}
 
-    public PomodoroSession(LocalDateTime startTime, SessionType type, int sessionTime, int streak) {
+    public PomodoroSession(User user, LocalDateTime startTime, SessionType type, int sessionTime, int streak) {
+        this.user = user;
         this.startTime = startTime;
         this.type = type;
         this.sessionTime = sessionTime;
         this.state = SessionState.ACTIVE;
         this.totalPauseDuration = 0;
         this.streak = streak;
+    }
+
+    public User getUser() {
+        return user;
     }
 
     public int getStreak() {
@@ -131,7 +140,7 @@ public class PomodoroSession {
 
     @Override
     public String toString() {
-        return "PomodoroSession{" + "startTime=" +  startTime + ", endTime=" + endTime + 
+        return "PomodoroSession{" + "userId=" + (user != null? user.getId(): "null") + "startTime=" +  startTime + ", endTime=" + endTime + 
                 ", state=" + state + ", type=" + type + ", pausedTime=" + pauseTime + ", totalPauseDuration=" + totalPauseDuration + "}";
     }
 }

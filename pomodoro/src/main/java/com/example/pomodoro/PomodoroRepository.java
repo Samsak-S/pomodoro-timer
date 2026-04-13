@@ -7,6 +7,6 @@ import com.example.pomodoro.model.SessionState;
 import java.util.*;
 
 public interface PomodoroRepository extends JpaRepository<PomodoroSession, Long>{
-    Optional<PomodoroSession> findFirstByStateIn(List<SessionState> states);    
-    Optional<PomodoroSession> findFirstByStateInOrderByIdDesc(List<SessionState> states);
+    Optional<PomodoroSession> findFirstByUserAndStateIn(User user, List<SessionState> states);    
+    Optional<PomodoroSession> findFirstByUserAndStateInOrderByIdDesc(User user, List<SessionState> states);
 }

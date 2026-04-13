@@ -1,13 +1,13 @@
 package com.example.pomodoro;
 import com.example.pomodoro.model.SessionType;
 
-public class StartSessionRequest {
+public class StartSessionRequestDto {
 
     private SessionType type;
     private int sessionTime;
     private int streak;
 
-    public StartSessionRequest() {
+    public StartSessionRequestDto() {
     }
 
     public void setStreak(int streak) {
@@ -33,5 +33,4 @@ public class StartSessionRequest {
     public int getSessionTime() {
         return sessionTime;
     }
-    
 }

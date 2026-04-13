@@ -1,6 +1,7 @@
 package com.example.pomodoro;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import jakarta.persistence.*;
 
@@ -22,7 +23,7 @@ public class User {
     private String password;
     
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private ArrayList<PomodoroSession> sessions = new ArrayList<>();
+    private List<PomodoroSession> sessions = new ArrayList<>();
 
     protected User() {}
 
@@ -54,7 +55,7 @@ public class User {
     }
 
 
-    public ArrayList<PomodoroSession> getSessions() {
+    public List<PomodoroSession> getSessions() {
         return sessions;
     }
     public void setSessions(ArrayList<PomodoroSession> sessions) {
@@ -64,5 +65,4 @@ public class User {
     public long getId() {
         return id;
     }
-
 }
