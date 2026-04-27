@@ -25,8 +25,8 @@ public class PomodoroService {
         return repository.findFirstByUserAndStateIn(user, List.of(SessionState.ACTIVE, SessionState.PAUSED));
     }
 
-    public Optional<PomodoroSession> getActiveOrPausedOrCompletedSession(User user) {
-        return repository.findFirstByUserAndStateInOrderByIdDesc(user, List.of(SessionState.ACTIVE, SessionState.PAUSED, SessionState.COMPLETED));
+    public Optional<PomodoroSession> getSession(User user) {
+        return repository.findFirstByUserAndStateInOrderByIdDesc(user, List.of(SessionState.ACTIVE, SessionState.PAUSED, SessionState.COMPLETED, SessionState.CANCELLED));
     }
 
     public PomodoroSessionDto startSession(User user, SessionType type, int sessionTime, int streak) {
@@ -88,7 +88,7 @@ public class PomodoroService {
     }
 
     public PomodoroSessionDto getCurrentSession(User user) {
-        PomodoroSession temp =  getActiveOrPausedOrCompletedSession(user).orElseThrow(() -> new SessionNotFoundException("There is no session to get"));
+        PomodoroSession temp =  getSession(user).orElseThrow(() -> new SessionNotFoundException("There is no session to get"));
         return mapper.toDto(temp);
     }
 }
