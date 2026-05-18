@@ -1,10 +1,17 @@
 package com.example.pomodoro;
 import com.example.pomodoro.model.SessionType;
 
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+
 public class StartSessionRequestDto {
 
+    @NotNull
     private SessionType type;
+    @Positive
     private int sessionTime;
+    @Min(0)
     private int streak;
 
     public StartSessionRequestDto() {

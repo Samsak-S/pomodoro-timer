@@ -1,4 +1,6 @@
 import React, {useState, useEffect, useRef} from "react";
+import alarmSound from "./sounds/alarm.mp3";
+import tickingSound from "./sounds/ticking_sound.wav";
 
 
 const Timer = () => {
@@ -7,11 +9,14 @@ const Timer = () => {
     const [sessionCount, setSessionCount] = useState(null);
     const [settingsOpen, setSettingsOpen] = useState(false);
     const [focusMenu, setFocusMenu] = useState(false);
-    const [sessionDuration, setSessionDuration] = useState(15);
+    const [sessionDuration, setSessionDuration] = useState(1500);
     const [showLogin, setShowLogin] = useState(false);
     const [password, setPassword] = useState("");
-    const [username, setUsername] = useState("");
+    const [email, setEmail] = useState("");
     const timeRef = useRef(null);
+    const [permission, setPermission] = useState(null);
+    const ticking = useRef(null);
+    const [loginError, setLoginError] = useState(false);
 
     const handleMouseEnter = () => {
         if(timeRef.current)
@@ -50,6 +55,51 @@ const Timer = () => {
         3: "LONG_BREAK"
     };
 
+    const triggerNotification = (type) => {
+        const alarm = new Audio(alarmSound);
+        
+        alarm.addEventListener('error', e => {
+            console.error("Audio error details:", alarm.error);
+        })
+
+        alarm.play().catch(err => console.log("audio playback failed:", err));
+        if(permission === "granted") {
+            const notification = new Notification("Pomodoro", {
+                body: `Your ${type} session is over!`,
+                tag: "pomodoro-notification"
+            });
+            
+            notification.onclick = () => {
+                window.focus();
+                alarm.pause();
+                notification.close();
+            };
+        }
+
+    }
+
+    const triggerTicking = (inp) => {
+        if(!ticking.current) {
+            ticking.current = new Audio(tickingSound);
+            ticking.current.loop = true;
+            ticking.current.addEventListener('error', () => {
+                console.error("Audio error details", ticking.current.error);
+            });
+        }
+
+        if(inp === "play")
+            ticking.current.play().catch(e => console.log("Playback Blocked", e));
+        else if(inp === "pause")
+            ticking.current.pause();
+        else
+            console.log("Invalid audio trigger");
+    }
+
+    async function enableNotifications() {
+        const newPerm = await Notification.requestPermission();
+        setPermission(newPerm);
+    }
+
     //For every re-render this useEffect will run.
     useEffect(() => {
         fetch('http://localhost:8080/api/pomodoro/current')
@@ -57,7 +107,6 @@ const Timer = () => {
         .then(data => {
             if(data) {
                 setSession(data);
-                console.log(data);
                 let timeElapsed;
                 if(data.state === "ACTIVE")
                     timeElapsed = Math.floor(
@@ -66,9 +115,14 @@ const Timer = () => {
                     timeElapsed = Math.floor((new Date(data.pauseTime) - new Date(data.startTime))/1000);
                 else if(data.state === "COMPLETED")
                     timeElapsed = 0;
-                    
+                   
+                let nextTime;
+                if(data.state !== "COMPLETED" && data.state !== "CANCELLED")
+                    nextTime = data.sessionTime;
+                else
+                    nextTime = calcSessionDuration(sessionType(data.streak + 1));
 
-                setSecondsLeft(data.sessionTime - timeElapsed);
+                setSecondsLeft(nextTime - timeElapsed);
                 setSessionCount(data.state === "COMPLETED"? data.streak + 1: data.streak);
 
                 if(data.state === "CANCELLED") {
@@ -78,9 +132,9 @@ const Timer = () => {
                 }
             }
         })
-        .catch(
-            setSessionCount(1)
-        )
+        .catch(() => {
+            setSessionCount(1);
+        });
     },[]);
 
     useEffect(() => {
@@ -98,7 +152,6 @@ const Timer = () => {
     //Sets the session from the first instance
     useEffect(() => {
         if(session && session.state === "ACTIVE") {
-            console.log("I'm in");
             const interval = setInterval(() => {
                 const elapsed = Math.floor(
                         (new Date() - new Date(session.startTime) - session.totalPauseDuration) / 1000);
@@ -110,6 +163,8 @@ const Timer = () => {
 
     useEffect(() => {
         if(secondsLeft <= 0 && session && session.state === "ACTIVE") {
+            if(session.type === "FOCUS")
+                triggerTicking("pause");
             fetch('http://localhost:8080/api/pomodoro/complete', {
                 method: 'POST',
                 headers: {'Content-Type' : 'application/json'}
@@ -119,12 +174,15 @@ const Timer = () => {
                 setSession(data);
                 setSessionCount(data.streak + 1);
                 setSecondsLeft(calcSessionDuration(sessionType(data.streak + 1)));
+                triggerNotification(sessionType(data.streak));
             })
             .catch(err => console.log("No active session"));
         }
     },[secondsLeft, session])
 
     const startSession = (type, sessionTime, streak) => {
+        if(type === "FOCUS")
+            triggerTicking("play");
         fetch('http://localhost:8080/api/pomodoro/start', {
             method: 'POST',
             headers: {'Content-type': 'application/json'},
@@ -139,12 +197,13 @@ const Timer = () => {
             setSession(data);
             const timeElapsed =  Math.floor((new Date() - new Date(data.startTime) )/ 1000);
             setSecondsLeft(data.sessionTime -  timeElapsed);
-            console.log(data);
         })
         .catch(err => console.error(err));
     };
 
     const cancelSession = () => {
+        if(session.type === "FOCUS")
+            triggerTicking("pause");
         fetch('http://localhost:8080/api/pomodoro/cancel', {
             method: 'POST'
         })
@@ -158,35 +217,55 @@ const Timer = () => {
     }
 
     const pauseSession = () => {
+        if(session.type === "FOCUS")
+            triggerTicking("pause");
         fetch('http://localhost:8080/api/pomodoro/pause', {
             method: 'POST'
         })
         .then(res => res.json())
-        .then((data) => setSession(data))
+        .then((data) => {
+            setSession(data);
+        } )
         .catch(err => console.log(err));
     }
 
     const resumeSession = () => {
+        if(session.type === "FOCUS") {
+            triggerTicking("play");
+        }
         fetch('http://localhost:8080/api/pomodoro/resume', {
             method: 'POST'
         })
         .then(res => res.json())
-        .then((data) => setSession(data))
+        .then((data) => {
+            setSession(data);
+        } )
         .catch(err => console.log(err));
     }
 
-    const handleLogin = (username, password) => {
-        fetch('http://localhost:8080/api/pomodoro/mock/auth/login', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({username, password})
-        })
-        .then(res => res.json())
-        .then((data) => {
-            localStorage.setItem("userToken", data.token)
-        })
-        .catch(err => console.log(err));
+    const handleLogin = async (email, password) => {
+        try {
+            const res = await fetch('http://localhost:8080/api/pomodoro/mock/auth/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({email, password})
+            });
+            if(res.ok) {
+                const body = await res.json();
+                localStorage.setItem("userToken", body.token);
+                setShowLogin(false);
+                setLoginError(false);
+            }
+            else {
+                setShowLogin(true);
+                setLoginError(true);
+            }
+        }
+        catch {
+
+        }
     }
+
 
     return( 
         <div className= {`flex flex-col min-h-screen transition-colors duration-1000 text-gray-200 font-mono ${
@@ -195,7 +274,7 @@ const Timer = () => {
                 sessionType(sessionCount) === "LONG_BREAK" && session && session.state === "ACTIVE" ?"bg-[#040F1D]":
                 "bg-gray-950"
         }`}>
-            <nav className= {`flex flex-row items-center transition-colors duration-1000 backdrop-blur-md justify-between px-6 py-1 shadow-md ${
+            <nav className= {`flex flex-row items-center transition-colors duration-1000 backdrop-blur-md justify-between  px-6 py-1 shadow-md ${
                 sessionType(sessionCount) === "FOCUS" && session &&  session.state === "ACTIVE"? "bg-rose-900/10":
                 sessionType(sessionCount) === "BREAK" && session && session.state === "ACTIVE"?"bg-green-900/10":
                 sessionType(sessionCount) === "LONG_BREAK" && session && session.state === "ACTIVE"? "bg-sky-900/10":
@@ -206,6 +285,7 @@ const Timer = () => {
                         className="mx-8  hover:[text-shadow:0_0_10px_white] hover:text-rose-500 p-2"
                         onMouseEnter= {() => {
                             handleMouseEnter();
+                            setFocusMenu(false);
                         }}
                         onMouseLeave= {() => {
                             handleMouseLeave();
@@ -251,44 +331,48 @@ const Timer = () => {
                                         handleMouseLeave();
                                     }}>
                                 <button 
-                                    className="block w-full text-left  px-4 py-2 hover:text-rose-500 hover:[text-shadow:0_0_30px_gray]" 
+                                    className="flex w-full text-left justify-between px-4 py-2 hover:text-rose-500 hover:[text-shadow:0_0_30px_gray]" 
                                     onClick={() => {
                                         setFocusMenu(!focusMenu);
                                         setSessionDuration(600);
-                                        if(!(session && session.type === "ACTIVE"))
+                                        if(!(session && session.state === "ACTIVE"))
                                             setSecondsLeft(600);
                                         }}>
-                                    Beginner level
+                                        <div className="text-sm">Beginner Level</div>
+                                        <div className="text-white/50 text-xs" >10 mins</div>
                                 </button>
                                 <button 
-                                    className="block w-full text-left  px-4 py-2 hover:text-rose-500 hover:[text-shadow:0_0_30px_gray]" 
+                                    className="flex w-full text-left justify-between px-4 py-2 hover:text-rose-500 hover:[text-shadow:0_0_30px_gray]" 
                                     onClick={() => {
                                         setFocusMenu(!focusMenu);
                                         setSessionDuration(1500);
-                                        if(!(session && session.type === "ACTIVE"))
+                                        if(!(session && session.state === "ACTIVE"))
                                             setSecondsLeft(1500);
                                         }}>
-                                    Intermediate level
+                                        <div className="text-sm">Intermediate Level</div>
+                                        <div className="text-white/50 text-xs" >25 mins</div>
                                 </button>
                                 <button 
-                                    className="block w-full text-left  px-4 py-2 hover:text-rose-500 hover:[text-shadow:0_0_30px_gray]" 
+                                    className="flex w-full text-left justify-between px-4 py-2 hover:text-rose-500 hover:[text-shadow:0_0_30px_gray]" 
                                     onClick={() => {
                                         setFocusMenu(!focusMenu);
                                         setSessionDuration(3600);
-                                        if(!(session && session.type === "ACTIVE"))
+                                        if(!(session && session.state === "ACTIVE"))
                                             setSecondsLeft(3600);
                                         }}>
-                                    Advanced level
+                                        <div className="text-sm">Advanced Level</div>
+                                        <div className="text-white/50 text-xs" >60 mins</div>
                                 </button>
                                 <button 
-                                    className="block w-full text-left  px-4 py-2 hover:text-rose-500 hover:[text-shadow:0_0_30px_gray]" 
+                                    className="flex w-full text-left justify-between px-4 py-2 hover:text-rose-500 hover:[text-shadow:0_0_30px_gray]" 
                                     onClick={() => {
                                         setFocusMenu(!focusMenu);
                                         setSessionDuration(5400);
-                                        if(!(session && session.type === "ACTIVE"))
+                                        if(!(session && session.state === "ACTIVE"))
                                             setSecondsLeft(5400);
                                         }}>
-                                    Master level
+                                        <div className="text-sm">Master Level</div>
+                                        <div className="text-white/50 text-xs" >90 mins</div>
                                 </button>
                             </div>
                         )
@@ -313,7 +397,10 @@ const Timer = () => {
                 </div>
                 <div className="flex flex-row">
                 {!session || session.state === "COMPLETED" || session.state === "CANCELLED" ? (
-                    <button onClick={() => startSession(sessionType(sessionCount), secondsLeft, sessionCount)} 
+                    <button onClick={() => {
+                        startSession(sessionType(sessionCount), secondsLeft, sessionCount);
+                        enableNotifications();
+                    }} 
                     className= {`flex-auto bg-gray-700 shadow-lg ${
                         sessionType(sessionCount) === "FOCUS" ? "hover:bg-rose-200 hover:text-rose-900 transition rounded-lg py-2 font-medium" :
                         sessionType(sessionCount) === "BREAK" ? "hover:bg-green-200 hover:text-green-900 transition rounded-lg py-2 font-medium" :
@@ -352,21 +439,21 @@ const Timer = () => {
                 {showLogin && (
                     /* This outer div is the "overlay" that covers the whole screen */
                     /* Increased blur to backdrop-blur-md and made the black tint slightly heavier */
-                    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/40 backdrop-blur-md transition-all">
+                    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30 backdrop-blur-md transition-all">
                         
-                        {/* The actual Box */}
+
                         <div className="bg-gray-900/90 border border-white/10 p-8 rounded-2xl shadow-2xl w-96 text-gray-200 font-mono">
                             <h2 className="text-2xl font-bold mb-6 text-center text-rose-500 tracking-wide">Login</h2>
                             
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-sm mb-1 text-gray-400">Username or Email</label>
+                                    <label className="block text-sm mb-1 text-gray-400">Email</label>
                                     <input 
                                         type="text" 
-                                        className="w-full px-4 py-2 bg-black/50 border border-gray-700 rounded-lg focus:outline-none focus:border-rose-500 transition"
-                                        value={username}
-                                        onChange={(e) => setUsername(e.target.value)}
-                                        placeholder="Enter username"
+                                        className="w-full px-4 py-2 bg-black/50 border border-white/10 rounded-lg focus:placeholder:text-transparent focus:outline-none focus:border-white/50 transition"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        placeholder="you@example.com"
                                     />
                                 </div>
                                 
@@ -374,29 +461,29 @@ const Timer = () => {
                                     <label className="block text-sm mb-1 text-gray-400">Password</label>
                                     <input 
                                         type="password" 
-                                        className="w-full px-4 py-2 bg-black/50 border border-gray-700 rounded-lg focus:outline-none focus:border-rose-500 transition"
+                                        className="w-full px-4 py-2 text-sm bg-black/50 border border-gray-700 border-white/10 rounded-lg focus:placeholder:text-transparent focus:outline-none focus:border-white/50 transition"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
-                                        placeholder="••••••••"
+                                        placeholder="Password"
                                     />
                                 </div>
-
                                 <div className="flex flex-row space-x-4 mt-8">
-                                    <button 
-                                        onClick={() => setShowLogin(false)}
-                                        className="flex-auto bg-gray-800 text-gray-300 hover:bg-gray-700 transition rounded-lg py-2"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button 
-                                        onClick={() => {
-                                            handleLogin(username, password);
-                                            setShowLogin(false);
-                                        }}
-                                        className="flex-auto bg-rose-600 text-white hover:bg-rose-500 transition rounded-lg py-2 font-medium shadow-[0_0_20px_rgba(225,29,72,0.3)]"
-                                    >
-                                        Sign In
-                                    </button>
+                                    {loginError && (
+                                        <p className="flex justify-between text-sm text-rose-400">Invalid email or password.</p>
+                                    )}
+                                        <button 
+                                            onClick={() => setShowLogin(false)}
+                                            className="flex-auto bg-gray-800 text-gray-300 hover:bg-gray-700 transition rounded-lg py-2"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button 
+                                            onClick={() => {
+                                                handleLogin(email, password);
+                                            }}
+                                            className="flex-auto bg-rose-600 text-white hover:bg-rose-500 transition rounded-lg py-2 font-medium shadow-[0_0_20px_rgba(225,29,72,0.3)]">
+                                            Sign In
+                                        </button>
                                 </div>
                             </div>
                         </div>

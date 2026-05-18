@@ -13,6 +13,7 @@ public class PomodoroMapper {
             session.getType(),
             session.getState(),
             session.getTotalPauseDuration(),
+            session.getPauseTime(),
             session.getSessionTime(),
             session.getStreak()
         );

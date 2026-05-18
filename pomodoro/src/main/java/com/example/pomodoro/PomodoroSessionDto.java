@@ -11,6 +11,7 @@ public record PomodoroSessionDto (
     SessionType type,
     SessionState state,
     long totalPauseDuration,
+    LocalDateTime pauseTime,
     int sessionTime,
     int streak
 ) {}

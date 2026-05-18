@@ -28,16 +28,16 @@ public class MockAuthControllers {
     }
     @PostMapping("/auth/login")        
     public ResponseEntity<?> mockLogin(@RequestBody Map<String, String> loginData) {
-        String username = loginData.get("username");
+        String email = loginData.get("email");
         String password = loginData.get("password");
 
-        return repository.findByUsername(username).map(user -> {
+        return repository.findByEmail(email).map(user -> {
             if(passwordEncoder.matches(password, user.getPassword())) {
                 Map<String, String> response = new HashMap<>();
-                response.put("token", jwtUtils.generateToken(username));
+                response.put("token", jwtUtils.generateToken(email));
                 return ResponseEntity.ok(response);
             }
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid password"));
-        }).orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "User not found")));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid credentials"));
+        }).orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid credentials")));
     }
 }

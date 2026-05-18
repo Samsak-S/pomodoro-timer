@@ -21,8 +21,8 @@ public class PomodoroSessionTest {
     @Test
     void shouldThrowExceptionWhenPausingInactiveSession() {
         PomodoroSession session = new PomodoroSession(null, LocalDateTime.now(), SessionType.FOCUS, 25, 1);
-        session.complete(); // Now it's COMPLETED
-        
+        session.pause();
+
         assertThrows(IllegalStateException.class, session::pause);
     }
 

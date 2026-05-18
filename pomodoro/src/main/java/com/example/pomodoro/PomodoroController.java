@@ -20,43 +20,43 @@ public class PomodoroController {
         this.currentService = currentService;
         this.repository = repository;
     }
-    private User getMockUser(String username) {
-        return repository.findByUsername(username).orElseThrow(() -> new RuntimeException("User Not Found! Use 'Alice' or 'Bob' in header"));
+    private User getMockUser(String email) {
+        return repository.findByEmail(email).orElseThrow(() -> new RuntimeException("User Not Found! Use 'alice@example.com' or 'Bob' in header"));
     }
 
     @PostMapping("/start")
-    public PomodoroSessionDto startPomodoro(@RequestHeader(value= "X-User-Name", defaultValue = "Alice") String username, @RequestBody StartSessionRequestDto request) {
-        User user = getMockUser(username);
+    public PomodoroSessionDto startPomodoro(@RequestHeader(value= "X-User-Name", defaultValue = "alice@example.com") String email, @RequestBody StartSessionRequestDto request) {
+        User user = getMockUser(email);
         return currentService.startSession(user, request.getType(), request.getSessionTime(), request.getStreak());
     }
 
     @PostMapping("/complete")
-    public PomodoroSessionDto completePomodoro(@RequestHeader(value= "X-User-Name", defaultValue = "Alice") String username) {
-        User user = getMockUser(username);
+    public PomodoroSessionDto completePomodoro(@RequestHeader(value= "X-User-Name", defaultValue = "alice@example.com") String email) {
+        User user = getMockUser(email);
         return currentService.completeSession(user);
     }
 
     @PostMapping("/pause")
-    public PomodoroSessionDto pausePomodoro(@RequestHeader(value= "X-User-Name", defaultValue = "Alice") String username) {
-        User user = getMockUser(username);
+    public PomodoroSessionDto pausePomodoro(@RequestHeader(value= "X-User-Name", defaultValue = "alice@example.com") String email) {
+        User user = getMockUser(email);
         return currentService.pauseSession(user);
     }
 
     @PostMapping("/resume")
-    public PomodoroSessionDto resumePomodoro(@RequestHeader(value= "X-User-Name", defaultValue = "Alice") String username) {
-        User user = getMockUser(username);
+    public PomodoroSessionDto resumePomodoro(@RequestHeader(value= "X-User-Name", defaultValue = "alice@example.com") String email) {
+        User user = getMockUser(email);
         return currentService.resumeSession(user);
     }
 
     @PostMapping("/cancel")
-    public PomodoroSessionDto cancelPomodoro(@RequestHeader(value= "X-User-Name", defaultValue = "Alice") String username) {
-        User user = getMockUser(username);
+    public PomodoroSessionDto cancelPomodoro(@RequestHeader(value= "X-User-Name", defaultValue = "alice@example.com") String email) {
+        User user = getMockUser(email);
         return currentService.cancelSession(user);
     }
 
     @GetMapping("/current")
-    public PomodoroSessionDto getCurrentPomodoro(@RequestHeader(value= "X-User-Name", defaultValue = "Alice") String username) {
-        User user = getMockUser(username);
+    public PomodoroSessionDto getCurrentPomodoro(@RequestHeader(value= "X-User-Name", defaultValue = "alice@example.com") String email) {
+        User user = getMockUser(email);
         return currentService.getCurrentSession(user);
     }
 }
