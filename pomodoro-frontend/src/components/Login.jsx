@@ -1,3 +1,5 @@
+import API_BASE from "../config";
+
 const Login = ({
     email,
     password,
@@ -11,7 +13,7 @@ const Login = ({
 
     const handleLogin = async (email, password) => {
         try {
-            const res = await fetch('http://localhost:8080/api/pomodoro/mock/auth/login', {
+            const res = await fetch(`${API_BASE}/api/pomodoro/mock/auth/login`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({email, password})

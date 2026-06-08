@@ -1,6 +1,7 @@
 import React,{useEffect, useRef, useState} from "react"; 
 import tickingSound from '../sounds/ticking_sound.wav';
 import alarmSound from '../sounds/alarm.mp3'
+import API_BASE from "../config";
 
 const usePomodoro = () => {
     //Session variables
@@ -130,7 +131,7 @@ const usePomodoro = () => {
 
     //Fetch the current state from the server
     useEffect(()=> {
-        fetch('http://localhost:8080/api/pomodoro/current')
+        fetch(`${API_BASE}/api/pomodoro/current`)
         .then(res => res.ok ? res.json() : null)
         .then(data => {
             if(data) {
@@ -156,7 +157,7 @@ const usePomodoro = () => {
     //Marking the current session to completed
     useEffect(() => {
         if(session && session.state === "ACTIVE" && secondsLeft <= 0) {
-            fetch('http://localhost:8080/api/pomodoro/complete', {
+            fetch(`${API_BASE}/api/pomodoro/complete`, {
                 method: 'POST',
                 headers: {'Content-type': 'application/json'}
             })
@@ -178,7 +179,7 @@ const usePomodoro = () => {
 
     //Cancelling the current session
     const cancelSession = () => {
-        fetch('http://localhost:8080/api/pomodoro/cancel', {
+        fetch(`${API_BASE}/api/pomodoro/cancel`, {
             method: 'POST',
             headers: {'Content-Type':'application/json'}
         })
@@ -199,7 +200,7 @@ const usePomodoro = () => {
 
     //Starting a new session
     const startSession = (type, sessionTime, streak) => {
-        fetch('http://localhost:8080/api/pomodoro/start', {
+        fetch(`${API_BASE}/api/pomodoro/start`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
@@ -220,7 +221,7 @@ const usePomodoro = () => {
 
     //Pausing a session
     const pauseSession = () => {
-        fetch('http://localhost:8080/api/pomodoro/pause', {
+        fetch(`${API_BASE}/api/pomodoro/pause`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
         })
@@ -233,7 +234,7 @@ const usePomodoro = () => {
 
     //Resuming a session 
     const resumeSession = () => {
-        fetch('http://localhost:8080/api/pomodoro/resume', {
+        fetch(`${API_BASE}/api/pomodoro/resume`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
         })
